@@ -20,6 +20,7 @@ class OverTwenty
 end
 
 class HandleHundred
+  #ruby isnt like swift...so i didnt use this...
   module TypeOfPower
     one = 0
     ten = 1
@@ -46,7 +47,7 @@ class HandleHundred
     if num < 20
       @english = TeenDigits.convertToString(num)
     else
-      @english = TeenDigits.convertToString(num)
+      @english = OverTwenty.convertToString(num)
       if num % 10 != 0
         @english += "-" + ToSingleDigits.convertToString(num % 10)
       end
@@ -80,7 +81,7 @@ class HandleHundred
       when 0
         return ToSingleDigits.convertToString(@convert)
       when 1
-        return self.handleTens(@convert)
+        return self.handleTens(@convert.to_i)
       when 2
         return self.handleHundred(@convert)
       else
@@ -89,4 +90,54 @@ class HandleHundred
 
   end
 end
-puts HandleHundred.computeHundreds(115)
+
+class Converter
+  @@maxSupportedStrings = ["", "thousand", "million", "billion", "trillion", "quadrillion", "quintillion", "sextillion"]
+  def self.convert(numberToConvert)
+    if !checkIfNumbersOnly(numberToConvert)
+      return "Not supported"
+    end
+    @numberToConvert = numberToConvert
+    @lengthOfString = numberToConvert.length
+    @finalString = ""
+    if @lengthOfString >= 22
+      return "Not supported...No details specification were given to support this large of a number"
+    end
+    if @lengthOfString > 3
+      @untilWeHaveNoChars = @lengthOfString
+      while @untilWeHaveNoChars > 0
+        @until = @untilWeHaveNoChars % 3
+        @partial = ""
+        if @until == 0
+          @partial = @numberToConvert[0..2]
+          puts "is zero"
+          puts @partial
+        else
+          @partial = @numberToConvert[0..@until - 1]
+          puts "else"
+          puts @partial
+        end
+        @numberToConvert = @numberToConvert.sub(@partial, "")
+        if @partial.to_i == 0
+          @untilWeHaveNoChars -= @until == 0 ? 3 : @until
+          next
+        end
+        @finalString += HandleHundred.computeHundreds(@partial.to_i)
+        @division = @untilWeHaveNoChars <= 3 ? 0 : @untilWeHaveNoChars % 3 == 0 ? @untilWeHaveNoChars / 3 - 1 : @untilWeHaveNoChars / 3
+        @finalString += " " + @@maxSupportedStrings[@division] + " "
+        @untilWeHaveNoChars -= @until == 0 ? 3 : @until
+      end
+    else
+      if @numberToConvert.to_i == 0
+        return "zero"
+      end
+      return HandleHundred.computeHundreds(@numberToConvert.to_i)
+    end
+    return @finalString
+
+  end
+  def self.checkIfNumbersOnly(value)
+    return !!(value =~ /^[0-9]+$/i)
+  end
+end
+puts Converter.convert(ARGV[0])
